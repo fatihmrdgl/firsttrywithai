@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimcrm-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mimcrm-api
+  template:
+    metadata:
+      labels:
+        app: mimcrm-api
+    spec:
+      containers:
+        - name: api
+          image: mimcrm-api:latest
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ConnectionStrings__DefaultConnection
+              value: server=mimcrm-mysql;port=3306;database=mimcrm;user=mimcrm;password=mimcrm123
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimcrm-api
+spec:
+  type: ClusterIP
+  selector:
+    app: mimcrm-api
+  ports:
+    - port: 8080
+      targetPort: 8080
