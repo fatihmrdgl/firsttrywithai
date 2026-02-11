@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mimcrm-mysql-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimcrm-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mimcrm-mysql
+  template:
+    metadata:
+      labels:
+        app: mimcrm-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          env:
+            - name: MYSQL_DATABASE
+              value: mimcrm
+            - name: MYSQL_USER
+              value: mimcrm
+            - name: MYSQL_PASSWORD
+              value: mimcrm123
+            - name: MYSQL_ROOT_PASSWORD
+              value: root123
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mimcrm-mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimcrm-mysql
+spec:
+  selector:
+    app: mimcrm-mysql
+  ports:
+    - port: 3306
+      targetPort: 3306

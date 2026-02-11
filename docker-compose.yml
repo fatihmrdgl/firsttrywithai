@@ -1,0 +1,43 @@
+version: '3.9'
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: mimcrm
+      MYSQL_USER: mimcrm
+      MYSQL_PASSWORD: mimcrm123
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  api:
+    build:
+      context: .
+      dockerfile: src/backend/MimCrm.Api/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: server=mysql;port=3306;database=mimcrm;user=mimcrm;password=mimcrm123
+    depends_on:
+      - mysql
+    ports:
+      - '8080:8080'
+
+  web:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8080
+    depends_on:
+      - api
+    ports:
+      - '5173:5173'
+
+volumes:
+  mysql-data:
